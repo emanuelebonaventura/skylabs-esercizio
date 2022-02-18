@@ -3,9 +3,11 @@ const app = express()
 const port = 3000
 const db = require('../database/db')
 
-app.get('/', (req, res) => {
+
+
+app.get('/es1', (req, res) => {
   
-  var sql= "SELECT * FROM 'records'"
+  var sql= "SELECT count(*) FROM records where age < 30 and over_50k = 1"
 
   db.all(sql, [], (err, rows) => {
     if (err) {
