@@ -1,8 +1,10 @@
 const express = require('express')
-const app = express()
+const bodyParser = require('body-parser')
 const port = 3000
 const db = require('../database/db')
 
+const app = express()
+app.use(bodyParser.urlencoded({ extended: false }));
 
 
 app.get('/es1', (req, res) => {
@@ -56,6 +58,38 @@ app.get('/es3/:offset/:count', (req, res) => {
     if (err) {
       //In caso di errore torna il messaggio di debug di Sqlite
       res.status(400).json({"error":err.message});
+      return;
+    }
+    //Parsing json
+    res.json({
+        "records":rows
+    })
+  });
+})
+
+
+app.post('/es4', (req, res) => {
+  var aggregationType = req.body.aggregationType;
+  var aggregationValue = req.body.aggregationValue;
+
+  if (aggregationType === undefined || aggregationValue === undefined) {
+      res.status(400).json({"error":"Per favore inserisci i campi richiesti."});
+      return;
+  }
+
+  if (aggregationType !== "age" && aggregationType !== "education_level_id" && aggregationType !== "occupation_id"){
+      res.status(400).json({"error":"Il campo "+ aggregationType +" non è supportato"});
+      return;
+  }
+  
+  var sql = "SELECT * from records where "+aggregationType+" = ?"
+
+            
+
+  db.all(sql, [aggregationValue], (err, rows) => {
+    if (err) {
+      //In caso di errore torna il messaggio di debug di Sqlite
+      res.status(400).json({"error":err.message});ß
       return;
     }
     //Parsing json
