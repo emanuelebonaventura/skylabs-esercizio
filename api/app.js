@@ -82,7 +82,10 @@ app.post('/es4', (req, res) => {
       return;
   }
   
-  var sql = "SELECT * from records where "+aggregationType+" = ?"
+  var sql = "SELECT sum(capital_gain) as capital_gain_sum, avg(capital_gain) as capital_gain_avg, sum(capital_loss) as capital_loss_sum, avg(capital_loss) as capital_loss_avg,"+
+          "count ((CASE WHEN over_50k = 1 THEN id END )) as over_50k_count, "+
+          "count((CASE WHEN over_50k = 0 THEN id  END )) as under_50k_count "+
+          "from records where "+aggregationType+" = ?"
 
             
 
@@ -94,7 +97,15 @@ app.post('/es4', (req, res) => {
     }
     //Parsing json
     res.json({
-        "records":rows
+        "aggregationType" : aggregationType,
+        "aggregationValue" : aggregationValue,
+        "capital_gain_sum" : rows[0].capital_gain_sum,
+        "capital_gain_avg" : rows[0].capital_gain_avg,
+        "capital_loss_sum" : rows[0].capital_loss_sum,
+        "capital_loss_avg" : rows[0].capital_loss_avg,
+        "over_50k_count" : rows[0].over_50k_count,
+        "under_50k_count" : rows[0].under_50k_count,
+     
     })
   });
 })
