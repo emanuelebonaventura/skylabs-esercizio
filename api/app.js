@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const port = 3000
 const db = require('../database/db')
+const { Parser } = require('json2csv');
 
 const app = express()
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -107,6 +108,39 @@ app.post('/es4', (req, res) => {
         "under_50k_count" : rows[0].under_50k_count,
      
     })
+  });
+})
+ 
+app.get('/es5', (req, res) => {
+  
+  var sql= "SELECT R.*,EL.name as education_level,MS.name as marital_status ,O.name as occupation,RA.name as race,S.name as sex,C.name as country "+
+            "FROM records R join workclasses W on W.id = R.occupation_id "+
+            "join education_levels EL on EL.id = R.education_level_id "+
+            "join marital_statuses MS on MS.id = R.marital_status_id "+
+            "join occupations O on O.id = R.occupation_id "+
+            "join races RA on RA.id = R.race_id "+
+            "join sexes S on S.id = R.sex_id "+
+            "join countries C on C.id = R.country_id "
+            
+  const fields = ['id','age','education_num','capital_gain','capital_loss',' hours_week','over_50k', 'education_level', 'marital_status','occupation','race','sex','country'];
+  const opts = { fields };
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      //In caso di errore torna il messaggio di debug di Sqlite
+      res.status(400).json({"error":err.message});
+      return;
+    }
+    //CSV
+    try {
+      const parser = new Parser(opts);
+      const csv = parser.parse(rows);
+      res.attachment('records.csv')
+      res.status(200).send(csv)
+     
+    } catch (err) {
+      res.status(400).json({"error":err});
+    }
+   
   });
 })
 
